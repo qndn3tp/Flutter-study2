@@ -10,9 +10,8 @@ var theme = ThemeData(
   textTheme: TextTheme(
     bodyMedium: TextStyle(color: Colors.black)
   ),
-  textButtonTheme: TextButtonThemeData(
-    style: TextButton.styleFrom(
-      backgroundColor: Colors.blue
-    )
+  bottomNavigationBarTheme: BottomNavigationBarThemeData(
+    selectedItemColor: Colors.black,
+    unselectedItemColor: Colors.grey,
   ),
 );

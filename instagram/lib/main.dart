@@ -28,17 +28,14 @@ class MyApp extends StatelessWidget {
         ],
       ),
       body: Text("hello"),
-      bottomNavigationBar: BottomAppBar(
-        elevation: 1,
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Icon(Icons.home_outlined),
-            Icon(Icons.shopping_bag_outlined),
-          ],
-        ),
-      ),
+      bottomNavigationBar: BottomNavigationBar(
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        items: [
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: "홈"),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_outlined), label: "샵"),
+        ],
+      )
     );
   }
 }
