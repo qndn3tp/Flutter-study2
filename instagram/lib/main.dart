@@ -25,10 +25,15 @@ class _MyAppState extends State<MyApp> {
 
   getData() async {       // 서버에서 데이터를 받아옴(get)
     var result = await http.get(Uri.parse("https://codingapple1.github.io/app/data.json"));
-    var result2 = json.decode(result.body);
-    setState(() {
-      data = result2;     // get한 데이터들을 state에 저장
-    });
+
+    if (result.statusCode == 200) {
+      var result2 = json.decode(result.body);
+      setState(() {
+        data = result2;     // get한 데이터들을 state에 저장
+      });
+    } else {
+      print("잘못된 페이지입니다");
+    }
   }
 
   @override
@@ -106,7 +111,9 @@ class Home extends StatelessWidget {
         );
       });
     } else {                                // data가 아직 안 들어왔을 때(도착하지 않았을 때)
-      return CircularProgressIndicator();
+      return Center(
+        child: CircularProgressIndicator()
+      );
     }
   }
 }
