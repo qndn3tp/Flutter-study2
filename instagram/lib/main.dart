@@ -23,7 +23,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   var tab = 0;            // 동적 UI생성: 하단바의 홈, 샵인 경우 화면을 다르게 함
   var data = [];          // 서버에서 받은 데이터(글)를 저장
-  var isVisible = 0;      // 하단바를 보이게/보이지 않게 하기 위한 상태
+  var isVisible = true;      // 하단바를 보이게/보이지 않게 하기 위한 상태
 
   getData() async {       // 서버에서 데이터를 받아옴(get)
     var result = await http.get(Uri.parse("https://codingapple1.github.io/app/data.json"));
@@ -39,9 +39,17 @@ class _MyAppState extends State<MyApp> {
   }
 
   @override
-  void initState() {      // MyApp 위젯이 로드될 때 실행됨
+  // MyApp 위젯이 로드될 때 실행됨
+  void initState() {
     super.initState();
     getData();            // 처음 실행될 때 데이터를 get 요청
+  }
+
+  // 스크롤 방향 상태를 전달받는 콜백함수 (하단바를 숨기기위함)
+  void updateVisibility(visible) {
+    setState(() {
+      isVisible = visible;
+    });
   }
 
   @override
@@ -58,8 +66,9 @@ class _MyAppState extends State<MyApp> {
           )
         ],
       ),
-      body: [ Home(data: data, isVisible: isVisible), Text("샵페이지")][tab],
-      bottomNavigationBar: BottomNavigationBar(
+      body: [ Home(data: data, isVisibleCallback: updateVisibility), Text("샵페이지")][tab],
+      bottomNavigationBar: isVisible
+        ? BottomNavigationBar(
         showSelectedLabels: false,
         showUnselectedLabels: false,
         onTap: (i){       // 유저의 선택에 따라 state가 변하도록
@@ -72,16 +81,18 @@ class _MyAppState extends State<MyApp> {
           BottomNavigationBarItem(icon: Icon(Icons.shopping_bag_outlined), label: "샵"),
         ],
       )
+          : null
     );
   }
 }
 
 // 글 위젯 (사진, 좋아요, 글쓴이, 내용)
 class Home extends StatefulWidget {
-  Home({super.key, this.data, this.isVisible});
+  Home({super.key, this.data, this.isVisible, this.isVisibleCallback});
 
   final data;
   var isVisible;
+  final isVisibleCallback;
 
   @override
   State<Home> createState() => _HomeState();
@@ -91,21 +102,29 @@ class _HomeState extends State<Home> {
 
   var scroll = ScrollController();    // 스크롤 상태를 저장
 
-  @override
-  void initState() {                  // Home 위젯이 로드될 때 실행됨
-    super.initState();
-    scroll.addListener(() {           // 스크롤 상태가 변경될 때마다 실행됨
-      if (scroll.position.pixels == scroll.position.maxScrollExtent) {    // 스크롤 위치가 끝일 때
-        getData();                    // 처음 실행될 때 데이터를 받아옴
-      }
-    });
-  }
-
-  getData() async{
+  // 서버에서 데이터를 더 받아오는 함수
+  getMore() async{
     var result = await http.get(Uri.parse("https://codingapple1.github.io/app/more1.json"));
     var result2 = json.decode(result.body);
     setState(() {
-      widget.data.add(result2);
+      widget.data.add(result2);       // 받아온 data를 기존 부모 위젯의 data에 추가
+    });
+  }
+
+  @override
+  // Home 위젯이 로드될 때 실행됨
+  void initState() {
+    super.initState();
+    scroll.addListener(() {                                               // 스크롤 상태가 변경될 때마다 실행됨
+      if (scroll.position.pixels == scroll.position.maxScrollExtent) {    // 스크롤 위치가 끝일 때
+        getMore();                                                        // 처음 실행될 때 데이터를 추가로 받아옴
+      }
+      if (scroll.position.userScrollDirection.toString() == "ScrollDirection.reverse") {  // 스크롤 내릴 때 하단바가 보이지 않도록 함
+        widget.isVisibleCallback(false);                                  // 스크롤을 내릴 때 isVisibleCallback을 호출하여 하단바 숨김
+      }
+      else if (scroll.position.userScrollDirection.toString() == "ScrollDirection.forward") {
+        widget.isVisibleCallback(true);                                   // 스크롤 방향이 다른 경우 isVisibleCallback을 호출하여 하단바 표시
+      }
     });
   }
 
