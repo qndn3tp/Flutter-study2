@@ -25,7 +25,8 @@ class _MyAppState extends State<MyApp> {
   var tab = 0;                // 동적 UI생성: 하단바의 홈, 샵인 경우 화면을 다르게 함
   var data = [];              // 서버에서 받은 데이터(글)를 저장
   var isVisible = true;       // 하단바를 보이게/보이지 않게 하기 위한 상태
-  var userImage;              // 업로드할 사진의 상태
+  var userImage;              // 업로드 할 사진의 상태
+  var userContent;            // 직접 업로드 할 글의 상태
 
   getData() async {           // 서버에서 데이터를 받아옴(get)
     var result = await http.get(Uri.parse("https://codingapple1.github.io/app/data.json"));
@@ -72,7 +73,7 @@ class _MyAppState extends State<MyApp> {
                 });
               }
               Navigator.push(context,                  // 새 글 작성 페이지로 이동
-                  MaterialPageRoute(builder: (c) => Upload(userImage: userImage)));
+                  MaterialPageRoute(builder: (c) => Upload(userImage: userImage, data: data)));
               },
             iconSize: 30,
           )
@@ -177,13 +178,15 @@ class _HomeState extends State<Home> {
 //            새 글 작성 위젯           //
 ///////////////////////////////////////
 class Upload extends StatelessWidget {
-  const Upload({super.key, this.userImage});
+  const Upload({super.key, this.userImage, this.data});
 
   final userImage;
+  final data;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text("새 게시물", style: TextStyle(fontSize: 20),),
         centerTitle: true,
@@ -192,10 +195,23 @@ class Upload extends StatelessWidget {
           icon: Icon(Icons.close),
           color: Colors.black,
         ),
+        actions: [
+          TextButton(                         // 최종 글 업로드 버튼
+              onPressed: (){
+              },
+              child: Text("공유", style: TextStyle(fontSize: 15),)
+          )
+        ],
       ),
       body: Column(
         children: [
-          Image(image: ResizeImage(FileImage(userImage), width: 1080, height: 1080)),
+          Image(image: ResizeImage(FileImage(userImage), width: 500, height: 500)),
+          TextField(decoration:
+          InputDecoration(
+            hintText: "  문구를 입력해주세요",
+            hintStyle: TextStyle(color: Colors.grey),
+          ),
+          ),
         ],
       ),
     );
