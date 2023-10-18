@@ -195,7 +195,7 @@ class Upload extends StatelessWidget {
       ),
       body: Column(
         children: [
-          Image.file(userImage),
+          Image(image: ResizeImage(FileImage(userImage), width: 1080, height: 1080)),
         ],
       ),
     );
