@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 
 void main() {
   runApp(
@@ -61,7 +62,7 @@ class _MyAppState extends State<MyApp> {
       'user': 'Geonhye Kim',
     };
     setState(() {
-    data.insert(0, myData);         // 서버의 data에 추가
+      data.insert(0, myData);         // 서버의 data에 추가
     });
   }
 
@@ -189,7 +190,16 @@ class _HomeState extends State<Home> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("좋아요 ${widget.data[i]["likes"].toString()}", style: TextStyle(fontWeight: FontWeight.bold),),
-                  Text(widget.data[i]["user"]),    // 글쓴이
+
+                  GestureDetector(
+                    child: Text(widget.data[i]["user"],),    // 글쓴이
+                    onTap: (){
+                      Navigator.push(context,
+                      CupertinoPageRoute(builder: (c) => Profile())
+                      );
+                    },
+                  ),
+
                   Text(widget.data[i]["content"]), // 글내용
                 ],
               ),
@@ -209,7 +219,7 @@ class _HomeState extends State<Home> {
 //            새 글 작성 위젯           //
 ///////////////////////////////////////
 class Upload extends StatelessWidget {
-  const Upload({super.key, this.userImage, this.setUserContent, this.addMyData});
+  Upload({super.key, this.userImage, this.setUserContent, this.addMyData});
 
   final userImage;
   final setUserContent;
@@ -251,6 +261,20 @@ class Upload extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+
+///////////////////////////////////////
+//             프로필 위젯              //
+///////////////////////////////////////
+class Profile extends StatelessWidget {
+  const Profile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
     );
   }
 }
