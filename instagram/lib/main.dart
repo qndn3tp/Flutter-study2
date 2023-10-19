@@ -28,24 +28,48 @@ class _MyAppState extends State<MyApp> {
   var userImage;              // 업로드 할 사진의 상태
   var userContent;            // 직접 업로드 할 글의 상태
 
-  getData() async {           // 서버에서 데이터를 받아옴(get)
+  // 서버에서 데이터를 받아오는 함수(get)
+  getData() async {
     var result = await http.get(Uri.parse("https://codingapple1.github.io/app/data.json"));
 
     if (result.statusCode == 200) {
       var result2 = json.decode(result.body);
       setState(() {
-        data = result2;       // get한 데이터들을 state에 저장
+        data = result2;             // get한 데이터들을 state에 저장
       });
     } else {
       print("잘못된 페이지입니다");
     }
   }
 
+  // 새 게시물의 text를 저장하는 함수
+  setUserContent(a) {
+    setState(() {
+      userContent = a;
+    });
+  }
+
+  // 서버의 data에 새 게시물(이미지+글)을 추가하는 함수
+  addMyData(){
+    var myData = {
+      "id": data.length,
+      "image": userImage,
+      "likes": 0,
+      "date": 'July 25',
+      'content': userContent,
+      'liked': false,
+      'user': 'Geonhye Kim',
+    };
+    setState(() {
+    data.insert(0, myData);         // 서버의 data에 추가
+    });
+  }
+
   @override
-  // MyApp 위젯이 로드될 때 실행됨
+  // MyApp 위젯이 로드될 때 실행되는 함수
   void initState() {
     super.initState();
-    getData();                // 처음 실행될 때 데이터를 get 요청
+    getData();                      // 처음 실행될 때 데이터를 get 요청
   }
 
   // 스크롤 방향 상태를 전달받는 콜백함수 (하단바를 숨기기위함)
@@ -72,8 +96,13 @@ class _MyAppState extends State<MyApp> {
                   userImage = File(image.path);        // 유저가 선택한 이미지 경로를 저장
                 });
               }
+              // ignore: use_build_context_synchronously
               Navigator.push(context,                  // 새 글 작성 페이지로 이동
-                  MaterialPageRoute(builder: (c) => Upload(userImage: userImage, data: data)));
+                  MaterialPageRoute(builder: (c) => Upload(
+                      userImage: userImage,
+                      setUserContent: setUserContent,
+                      addMyData: addMyData))
+              );
               },
             iconSize: 30,
           )
@@ -150,7 +179,9 @@ class _HomeState extends State<Home> {
       return ListView.builder(itemCount: widget.data.length, controller: scroll, itemBuilder: (c, i){
         return Column(
           children: [
-            Image.network(widget.data[i]["image"]),
+            widget.data[i]["image"].runtimeType == String                 // 저장된 이미지가 주소 형태라면
+                ? Image.network(widget.data[i]["image"])                  // image network 형태로 보여줌
+                : Image.file(widget.data[i]["image"]),                    // image file 형태로 보여줌
             Container(
               margin: EdgeInsets.all(20),
               width: double.infinity,
@@ -178,10 +209,11 @@ class _HomeState extends State<Home> {
 //            새 글 작성 위젯           //
 ///////////////////////////////////////
 class Upload extends StatelessWidget {
-  const Upload({super.key, this.userImage, this.data});
+  const Upload({super.key, this.userImage, this.setUserContent, this.addMyData});
 
   final userImage;
-  final data;
+  final setUserContent;
+  final addMyData;
 
   @override
   Widget build(BuildContext context) {
@@ -196,8 +228,10 @@ class Upload extends StatelessWidget {
           color: Colors.black,
         ),
         actions: [
-          TextButton(                         // 최종 글 업로드 버튼
+          TextButton(                         // 최종 게시물 업로드 버튼
               onPressed: (){
+              addMyData();                    // 게시물을 data에 추가
+              Navigator.pop(context);
               },
               child: Text("공유", style: TextStyle(fontSize: 15),)
           )
@@ -206,11 +240,14 @@ class Upload extends StatelessWidget {
       body: Column(
         children: [
           Image(image: ResizeImage(FileImage(userImage), width: 500, height: 500)),
-          TextField(decoration:
-          InputDecoration(
-            hintText: "  문구를 입력해주세요",
-            hintStyle: TextStyle(color: Colors.grey),
-          ),
+          TextField(
+            onChanged: (text){                // 글을 입력할 때마다 text로 저장
+              setUserContent(text);
+            },
+            decoration: InputDecoration(
+              hintText: "  문구를 입력해주세요",
+              hintStyle: TextStyle(color: Colors.grey),
+            ),
           ),
         ],
       ),
