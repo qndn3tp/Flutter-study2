@@ -4,7 +4,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
+// 위젯
+import './widgets/Upload.dart';
+import './widgets/Home.dart';
 
 void main() {
   runApp(
@@ -125,157 +127,6 @@ class _MyAppState extends State<MyApp> {
         ],
         )
           : null                        // 하단바를 숨김
-    );
-  }
-}
-
-
-///////////////////////////////////////
-//   글 위젯 (사진, 좋아요, 글쓴이, 내용)   //
-///////////////////////////////////////
-class Home extends StatefulWidget {
-  Home({super.key, this.data, this.isVisible, this.isVisibleCallback});
-
-  final data;
-  var isVisible;
-  final isVisibleCallback;
-
-  @override
-  State<Home> createState() => _HomeState();
-}
-
-class _HomeState extends State<Home> {
-
-  var scroll = ScrollController();    // 스크롤 상태를 저장
-
-  // 서버에서 데이터를 더 받아오는 함수
-  getMore() async{
-    var result = await http.get(Uri.parse("https://codingapple1.github.io/app/more1.json"));
-    var result2 = json.decode(result.body);
-    setState(() {
-      widget.data.add(result2);       // 받아온 data를 기존 부모 위젯의 data에 추가
-    });
-  }
-
-  @override
-  // Home 위젯이 로드될 때 실행됨
-  void initState() {
-    super.initState();
-    scroll.addListener(() {                                               // 스크롤 상태가 변경될 때마다 실행됨
-      if (scroll.position.pixels == scroll.position.maxScrollExtent) {    // 스크롤 위치가 끝일 때
-        getMore();                                                        // 처음 실행될 때 데이터를 추가로 받아옴
-      }
-      if (scroll.position.userScrollDirection.toString() == "ScrollDirection.reverse") {  // 스크롤 내릴 때 하단바가 보이지 않도록 함
-        widget.isVisibleCallback(false);                                  // 스크롤을 내릴 때 isVisibleCallback을 호출하여 하단바 숨김
-      }
-      else if (scroll.position.userScrollDirection.toString() == "ScrollDirection.forward") {
-        widget.isVisibleCallback(true);                                   // 스크롤 방향이 다른 경우 isVisibleCallback을 호출하여 하단바 표시
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.data.isNotEmpty){
-      return ListView.builder(itemCount: widget.data.length, controller: scroll, itemBuilder: (c, i){
-        return Column(
-          children: [
-            widget.data[i]["image"].runtimeType == String                 // 저장된 이미지가 주소 형태라면
-                ? Image.network(widget.data[i]["image"])                  // image network 형태로 보여줌
-                : Image.file(widget.data[i]["image"]),                    // image file 형태로 보여줌
-            Container(
-              margin: EdgeInsets.all(20),
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("좋아요 ${widget.data[i]["likes"].toString()}", style: TextStyle(fontWeight: FontWeight.bold),),
-
-                  GestureDetector(
-                    child: Text(widget.data[i]["user"],),    // 글쓴이
-                    onTap: (){
-                      Navigator.push(context,
-                      CupertinoPageRoute(builder: (c) => Profile())
-                      );
-                    },
-                  ),
-
-                  Text(widget.data[i]["content"]), // 글내용
-                ],
-              ),
-            ),
-          ],
-        );
-      });
-    } else {                                // data가 아직 안 들어왔을 때(도착하지 않았을 때)
-      return Center(
-        child: CircularProgressIndicator()
-      );
-    }
-  }
-}
-
-///////////////////////////////////////
-//            새 글 작성 위젯           //
-///////////////////////////////////////
-class Upload extends StatelessWidget {
-  Upload({super.key, this.userImage, this.setUserContent, this.addMyData});
-
-  final userImage;
-  final setUserContent;
-  final addMyData;
-  var inputData = TextEditingController();      // 입력한 텍스트를 저장하기 위함
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: Text("새 게시물", style: TextStyle(fontSize: 20),),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: (){ Navigator.pop(context); },
-          icon: Icon(Icons.close),
-          color: Colors.black,
-        ),
-        actions: [
-          TextButton(                         // 최종 게시물 업로드 버튼
-              onPressed: (){
-                if (inputData != null){
-                  setUserContent(inputData.text);}
-              addMyData();                    // 게시물을 data에 추가
-              Navigator.pop(context);
-              },
-              child: Text("공유", style: TextStyle(fontSize: 15),)
-          )
-        ],
-      ),
-      body: Column(
-        children: [
-          Image(image: ResizeImage(FileImage(userImage), width: 500, height: 500)),
-          TextField(
-            controller: inputData,
-            decoration: InputDecoration(
-              hintText: "  문구를 입력해주세요",
-              hintStyle: TextStyle(color: Colors.grey),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
-///////////////////////////////////////
-//             프로필 위젯              //
-///////////////////////////////////////
-class Profile extends StatelessWidget {
-  const Profile({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
     );
   }
 }
