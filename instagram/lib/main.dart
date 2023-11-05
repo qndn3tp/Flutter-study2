@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 // 위젯
 import './widgets/Upload.dart';
 import './widgets/Home.dart';
@@ -68,10 +69,20 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  // 유저의 데이터를 저장하는 함수
+  saveData() async {
+    var storage = await SharedPreferences.getInstance();    // 저장공간 오픈
+    var map = {'age': 22};
+    storage.setString('map', json.encode(map));             // 값을 저장
+    var result = storage.getString('map') ?? 'null';        // 값을 가져옴, map자료형은 인코딩 필요
+    print(json.decode(result));
+  }
+
   @override
   // MyApp 위젯이 로드될 때 실행되는 함수
   void initState() {
     super.initState();
+    saveData();
     getData();                      // 처음 실행될 때 데이터를 get 요청
   }
 
